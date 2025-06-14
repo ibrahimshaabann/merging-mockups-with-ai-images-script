@@ -79,22 +79,21 @@ print(f"design_image size: {design_image.size}, mode: {design_image.mode}")
 
 # Ensure the design image is resized to fit the sublayer
 
-if layer_width < layer_height:
-    # If the sublayer is wider than tall, fit to width
-    design_image = design_image.resize((layer_width, layer_width))
-else:
-    # If the sublayer is taller than wide, fit to height
-    design_image = design_image.resize((layer_height, layer_height))
+# if layer_width < layer_height:
+#     # If the sublayer is wider than tall, fit to width
+#     design_image = design_image.resize((layer_width, layer_width))
+# else:
+#     # If the sublayer is taller than wide, fit to height
+#     design_image = design_image.resize((layer_height, layer_height))
 
-
-design_image = design_image.resize((layer_width, layer_width))
+design_image = design_image.resize((1500, 1500))
 
 print(f"✅ Design image resized to sublayer size.")
 
 # --------------------------
 # 8️⃣ PASTE ON BASE COMPOSITE
 # --------------------------
-base_image.paste(design_image, (x1, y1), design_image)
+base_image.paste(design_image, (x1+300, y1+650), design_image)
 
 # --------------------------
 # 9️⃣ SAVE FINAL RESULT

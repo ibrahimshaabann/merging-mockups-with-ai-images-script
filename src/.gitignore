@@ -1,0 +1,54 @@
+# ===============================
+# Python
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual env
+venv/
+ENV/
+env/
+.venv/
+
+# ===============================
+# IDEs & Editors
+# ===============================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ===============================
+# Mac & System files
+# ===============================
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Logs & temp
+# ===============================
+*.log
+*.tmp
+*.swp
+
+# ===============================
+# Output folders
+# ===============================
+outputs/*
+ai_generated_images/*
+tshirt_mockups/*
+# ===============================
+# Python packaging
+# ===============================
+*.egg-info/
+dist/
+build/
+
+# ===============================
+# Environment files
+# ===============================
+.env
+*.env

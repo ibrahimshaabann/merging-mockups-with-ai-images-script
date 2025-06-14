@@ -6,98 +6,87 @@ from PIL import Image
 # --------------------------
 PSD_PATH = 'tshirt_mockups/tshirt_mockup4.psd'
 AI_IMAGE_PATH = 'ai_generated_images/ai_design1.png'
-OUTPUT_PATH = 'outputs/final_mockup.png'
+OUTPUT_PATH = 'outputs/final_mockup_with_shadows.png'
 
 TARGET_LAYER_GROUP = 'Design and Color T-Shirt'
-TARGET_SUBLAYER = 'Your Design Withiut Sleeve (double click)'   # <<-- replace with your sublayer name
+TARGET_SUBLAYER = 'Your Design Withiut Sleeve (double click)'   # typo? adjust spelling if needed!
+
+# Shadow & Light layers to overlay
+OVERLAY_LAYERS = ['More Shadow', 'Light', 'Light and Shadow T-Shirt']
 
 # --------------------------
 # 2️⃣ OPEN PSD & BASE IMAGE
 # --------------------------
 psd = PSDImage.open(PSD_PATH)
-print(f"✅ PSD image bbox{psd._bbox}")
-print(f"✅ PSD image layers: {psd._layers}")
-base_image = psd.composite()
-print(f"✅ Base image composite created from PSD: {base_image.size}")
-print(f"✅ Base image mode: {base_image.mode}")
-print(f"✅ Base image format: {base_image.format}") 
-print(f"✅ Base image info{base_image.info}")
+base_image = psd.composite().convert("RGBA")
 print(f"✅ PSD opened: {PSD_PATH}")
 
 # --------------------------
 # 3️⃣ FIND TARGET GROUP
 # --------------------------
-target_group = None
-for layer in psd:
-    if layer.name == TARGET_LAYER_GROUP:
-        target_group = layer
-        break
-
-if target_group is None:
+target_group = next((layer for layer in psd if layer.name == TARGET_LAYER_GROUP), None)
+if not target_group:
     raise Exception(f"Layer group '{TARGET_LAYER_GROUP}' not found!")
 
 print(f"✅ Found layer group: {target_group.name}")
 
 # --------------------------
-# 4️⃣ LIST SUBLAYERS
+# 4️⃣ FIND TARGET SUBLAYER
 # --------------------------
-print(f"📂 Sublayers inside '{TARGET_LAYER_GROUP}':")
-for sublayer in target_group:
-    print(f"  - {sublayer.name} (Visible: {sublayer.visible})")
-
-# --------------------------
-# 5️⃣ FIND TARGET SUBLAYER
-# --------------------------
-target_sublayer = None
-for sublayer in target_group:
-    if sublayer.name == TARGET_SUBLAYER:
-        target_sublayer = sublayer
-        print(f"✅ target sublayer size: {target_sublayer.size}")
-        break
-
-if target_sublayer is None:
+target_sublayer = next((layer for layer in target_group if layer.name == TARGET_SUBLAYER), None)
+if not target_sublayer:
     raise Exception(f"Sublayer '{TARGET_SUBLAYER}' not found!")
 
 print(f"✅ Found sublayer: {target_sublayer.name}")
 
 # --------------------------
-# 6️⃣ GET SUBLAYER POSITION & SIZE
+# 5️⃣ Get sublayer bbox
 # --------------------------
 x1, y1, x2, y2 = target_sublayer.bbox
 layer_width = x2 - x1
 layer_height = y2 - y1
 
 print(f"📐 Sublayer bbox: {target_sublayer.bbox}")
-print(f"   Width: {layer_width}, Height: {layer_height}")
 
 # --------------------------
-# 7️⃣ OPEN & RESIZE AI IMAGE
+# 6️⃣ Open & Resize AI Design
 # --------------------------
 design_image = Image.open(AI_IMAGE_PATH).convert("RGBA")
-print(f"design_image size: {design_image.size}, mode: {design_image.mode}")
+design_image = design_image.resize((1300, 1300), Image.LANCZOS)
 
-
-# Ensure the design image is resized to fit the sublayer
-
-# if layer_width < layer_height:
-#     # If the sublayer is wider than tall, fit to width
-#     design_image = design_image.resize((layer_width, layer_width))
-# else:
-#     # If the sublayer is taller than wide, fit to height
-#     design_image = design_image.resize((layer_height, layer_height))
-
-design_image = design_image.resize((1500, 1500))
-
-print(f"✅ Design image resized to sublayer size.")
+print(f"✅ Design image resized to: {design_image.size}")
 
 # --------------------------
-# 8️⃣ PASTE ON BASE COMPOSITE
+# 7️⃣ Paste design on base
 # --------------------------
-base_image.paste(design_image, (x1+300, y1+650), design_image)
+base_image.paste(design_image, (x1, y1), design_image)
+
+print(f"✅ Design pasted at: {(x1, y1)}")
 
 # --------------------------
-# 9️⃣ SAVE FINAL RESULT
+# 8️⃣ Overlay shadow & light layers
+# --------------------------
+for layer_name in OVERLAY_LAYERS:
+    overlay_layer = next((layer for layer in target_group if layer.name == layer_name), None)
+    if not overlay_layer:
+        raise Exception(f"Overlay layer '{layer_name}' not found!")
+
+    overlay_image = overlay_layer.composite().convert("RGBA")
+
+    # Paste the overlay at its bbox location
+    ox1, oy1, _, _ = overlay_layer.bbox
+
+    # Create a transparent RGBA the same size as base
+    temp = Image.new("RGBA", base_image.size)
+    temp.paste(overlay_image, (ox1, oy1), overlay_image)
+
+    # Blend with base image
+    base_image = Image.alpha_composite(base_image, temp)
+
+    print(f"✅ Applied overlay: {layer_name}")
+
+# --------------------------
+# 9️⃣ Save final result
 # --------------------------
 base_image.save(OUTPUT_PATH)
-print(f"✅ Final merged mockup saved: {OUTPUT_PATH}")
-
+print(f"✅ Final mockup with shadows saved: {OUTPUT_PATH}")
